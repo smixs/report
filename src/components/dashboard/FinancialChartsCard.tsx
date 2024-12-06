@@ -10,7 +10,7 @@ const COLORS = [
 const expensesData = [
   { name: 'Расходы', value: 314446 },
   { name: 'Себестоимость услуг', value: 218534 }
-];
+] as const;
 
 const servicesCostData = [
   { name: 'Креативная концепция', value: 26.12 },
@@ -25,7 +25,7 @@ const servicesCostData = [
   { name: 'Ивенты/БТЛ', value: 2.50 },
   { name: 'Производство рекламных конструкций', value: 1.89 },
   { name: 'Абонентское обслуживание', value: 1.19 }
-];
+] as const;
 
 const expensesCategoriesData = [
   { name: 'Расходы по заработной плате', value: 66.85 },
@@ -37,16 +37,26 @@ const expensesCategoriesData = [
   { name: 'Командировки', value: 0.32 },
   { name: 'Представительские', value: 0.04 },
   { name: 'Подарки клиентам', value: 0.01 }
-];
+] as const;
 
-const CustomTooltip = ({ active, payload }: any) => {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    name: string;
+    value: number;
+    payload: { name: string; value: number };
+  }>;
+  unit?: string;
+}
+
+const CustomTooltip = ({ active, payload, unit }: TooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-2 rounded-lg shadow-lg border text-xs">
-        <p className="font-semibold">{payload[0].name}</p>
+        <p className="font-semibold">{payload[0].payload.name}</p>
         <p className="text-gray-600">
           {payload[0].value.toLocaleString()}
-          {payload[0].unit === 'currency' ? ' тыс $' : '%'}
+          {unit === 'currency' ? ' тыс $' : '%'}
         </p>
       </div>
     );
@@ -54,13 +64,22 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
+interface CustomLabelProps {
+  cx: number;
+  cy: number;
+  midAngle: number;
+  innerRadius: number;
+  outerRadius: number;
+  value: number;
+}
+
 const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value }: any) => {
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value }: CustomLabelProps) => {
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-  if (value < 3) return null; // Не показывать подписи для маленьких сегментов
+  if (value < 3) return null;
 
   return (
     <text 
@@ -95,9 +114,9 @@ export const FinancialChartsCard = () => {
                   fill="#8884d8"
                   dataKey="value"
                   labelLine={false}
-                  label={({ name, value }) => `$${value.toLocaleString()}`}
+                  label={({ value }) => `$${value.toLocaleString()}`}
                 >
-                  {expensesData.map((entry, index) => (
+                  {expensesData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -127,7 +146,7 @@ export const FinancialChartsCard = () => {
                   labelLine={false}
                   label={renderCustomizedLabel}
                 >
-                  {servicesCostData.map((entry, index) => (
+                  {servicesCostData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -162,7 +181,7 @@ export const FinancialChartsCard = () => {
                   labelLine={false}
                   label={renderCustomizedLabel}
                 >
-                  {expensesCategoriesData.map((entry, index) => (
+                  {expensesCategoriesData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
